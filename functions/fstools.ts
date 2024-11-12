@@ -1,4 +1,4 @@
-import { ConfigKey } from "./help";
+import { ConfigKey } from "@/help";
 
 type TableBaseParams = {
   app_token: string;
