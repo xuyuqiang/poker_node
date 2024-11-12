@@ -1,4 +1,4 @@
-import { ConfigKey } from "@/help";
+import { ConfigKey, getConfigValue } from "@/help";
 
 type TableBaseParams = {
   app_token: string;
@@ -37,8 +37,8 @@ export const getTenantAccessToken = async (fk?: string): Promise<string> => {
     'https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal',
     {
       body: JSON.stringify({
-        app_id: getConfig(ConfigKey.ROBOT_APP_ID),
-        app_secret: getConfig(ConfigKey.ROBOT_SECRET),
+        app_id: getConfigValue(ConfigKey.ROBOT_APP_ID),
+        app_secret: getConfigValue(ConfigKey.ROBOT_SECRET),
       }),
       method: 'POST',
     }
@@ -435,7 +435,3 @@ function handleResult(res: any) {
   }
   return res.data;
 }
-function getConfig(ROBOT_APP_ID: ConfigKey) {
-  throw new Error("Function not implemented.");
-}
-

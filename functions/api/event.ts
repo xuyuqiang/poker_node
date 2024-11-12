@@ -25,7 +25,7 @@ import { GameStatus } from '../types';
 const db = cloud.mongo.db
 
 export default async function (ctx: FunctionContext) {
-  console.log('Hello World')
+  console.log('Hello World', JSON.stringify(ctx.body));
   let { challenge } = ctx.body || {};
   if (challenge) {
     return {
@@ -34,7 +34,7 @@ export default async function (ctx: FunctionContext) {
   }
   const req_params = ctx.body;
   //判断飞书消息是否是机器人消息
-  const isMsg = isRobotMsg(req_params);
+  const isMsg = await isRobotMsg(req_params);
   console.log('[event]isMsg', isMsg);
   if (!isMsg) {
     return {
@@ -44,6 +44,7 @@ export default async function (ctx: FunctionContext) {
   const msg = req_params as RobotMsg<any>;
   const actionInfo = getRobotActionInfo(msg);
   const chat_id = actionInfo.options?.chat_id;
+  console.log('[event]actionInfo', actionInfo); 
   if (!chat_id) {
     //更新消息状态
     return "HELLO WORLD";
@@ -52,6 +53,7 @@ export default async function (ctx: FunctionContext) {
     key: chat_id
   })
   if (doc) {
+    console.log('[event]正在处理中', chat_id);
     return {
       toast: {
         type: 'error',
@@ -94,22 +96,24 @@ export default async function (ctx: FunctionContext) {
   };
 }
 
-function isRobotMsg(msg: any) {
+async function isRobotMsg(msg: any) {
   const event_type = msg?.header?.event_type;
   if (
     event_type === 'im.message.receive_v1' ||
     event_type === 'im.message.reaction.created_v1' ||
     event_type === 'card.action.trigger'
   ) {
-    // const event_id = msg?.header?.event_id;
-    // if (OLDMESSAGE.includes(event_id)) {
-    //   return false;
-    // }
-    // //如果数组长度超过10000，删除前5000
-    // if (OLDMESSAGE.length > 10000) {
-    //   OLDMESSAGE.splice(0, 5000);
-    // }
-    // OLDMESSAGE.push(event_id);
+    const event_id = msg?.header?.event_id;
+    const doc = await db.collection('lock').findOne({
+      key: event_id
+    })
+    if (doc) {
+      return false;
+    }
+    await db.collection('lock').insertOne({
+      key: 'event_id_' + event_id,
+      value: 1,
+    })
 
     //判断消息时间是否在5分钟内 ,如果超过5分钟，就不处理了
     const create_time = Number(msg?.event?.message?.create_time);
@@ -197,6 +201,7 @@ async function handleReplyMsg(robotAction: RobotAction<ReplyActionOption>) {
   if (!content || !chat_id) {
     throw new Error('【处理消息】参数错误');
   }
+  console.log('[处理消息]content', content);
   if (isCreateRoom(content)) {
     await handleReplyMsgToCreateRoom(robotAction);
   } else if (isJoinRoom(content)) {
