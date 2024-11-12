@@ -1,3 +1,5 @@
+import { ConfigKey } from "./help";
+
 type TableBaseParams = {
   app_token: string;
   table_id: string;
@@ -35,8 +37,8 @@ export const getTenantAccessToken = async (fk?: string): Promise<string> => {
     'https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal',
     {
       body: JSON.stringify({
-        app_id: 'cli_a79f01e47bbd900d',
-        app_secret: 'w0v5jApmNqtduQsd3BmzofiGs2Qykrr7',
+        app_id: getConfig(ConfigKey.ROBOT_APP_ID),
+        app_secret: getConfig(ConfigKey.ROBOT_SECRET),
       }),
       method: 'POST',
     }
@@ -433,3 +435,7 @@ function handleResult(res: any) {
   }
   return res.data;
 }
+function getConfig(ROBOT_APP_ID: ConfigKey) {
+  throw new Error("Function not implemented.");
+}
+
