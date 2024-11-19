@@ -142,6 +142,7 @@ export const createGame = async ({
     round_type: RoundType.PREFLOP,
     player_bet_list: playerActionList,
     current_player_index: currentActionPlayerIndex,
+    last_player_index: -1,
     current_max_chips: bb,
   });
 

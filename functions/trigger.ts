@@ -69,7 +69,7 @@ const _handleTrigger = async (actionInfo: RobotAction<TriggerActionOption>) => {
   const timestamp = Number(values[1]);
   if (timestamp && timestamp <= ((roomInfo.update_time || 0) - 2000)) {
     console.log(`卡片已过期,${timestamp},${roomInfo.update_time}`);
-    throw new Error("卡片已过期");
+    throw new Error("卡片已过期,请点击刷新后重试");
   }
   //判断是否是当前用户
   const need_user_id = ['call', 'check', 'fold', 'allin', 'raise', 'raise_ratio'];
@@ -506,6 +506,7 @@ export function updateCurrentPlayerAction(
     const next_player_index = round.player_bet_list.findIndex(
       (a) => a.player_id === wait_player_list[0].player_id
     );
+    round.last_player_index = round.current_player_index;
     round.current_player_index = next_player_index;
   }
   return wait_player_list;
@@ -544,6 +545,7 @@ function startNextRound({ gameInfo }: StartNextRoundParams) {
     }),
     current_max_chips: 0,
     current_player_index,
+    last_player_index: round.current_player_index,
   });
   gameInfo.round_list = round_list;
   gameInfo.pokers = pokers;

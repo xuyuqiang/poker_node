@@ -174,6 +174,7 @@ export interface RoundInfo {
   //玩家下注信息
   player_bet_list: PlayerBetInfo[]; //所有用户的下注信息，包括未行动的用户
   current_player_index: number; //当前行动人
+  last_player_index: number; //上一个行动人 <0 表示没有行动人
   //当前下注的最高值
   current_max_chips: number;
 }

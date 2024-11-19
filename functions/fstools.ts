@@ -1,5 +1,5 @@
 import { ConfigKey, getConfigValue } from "@/help";
-
+import dayjs from 'dayjs';
 type TableBaseParams = {
   app_token: string;
   table_id: string;
@@ -198,6 +198,7 @@ export function createCardInfo({ template_id, data }: CreateCardInfo) {
       template_variable: {
         ...data,
         timestamp: Date.now().toString(), //增加时间戳
+        update_time: dayjs().format('YYYY-MM-DD HH:mm:ss'), //更新时间
       },
     },
   };

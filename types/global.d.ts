@@ -7,3 +7,8 @@ interface FunctionContext {
 }
 
 declare const process: { env: { [key: string]: string | undefined } };
+
+declare module 'dayjs' {
+    const dayjs: any;
+    export default dayjs;
+}

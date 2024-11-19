@@ -1,7 +1,7 @@
 import { getPositionText } from "@/help";
 import { getTestPlayerRealId } from "@/player";
 import { getPokerListText, getPokerTypeText } from "@/poker";
-import { BetType, PlayerInfo, PlayerResult, RoundInfo, RoundTypeList } from './types';
+import { BetInfo, BetType, PlayerInfo, PlayerResult, RoundInfo, RoundTypeList } from './types';
 
 export type GetRoomInfoMsgDataParams = {
   sb: number;
@@ -75,31 +75,30 @@ export const getPlayerActionMsgData = ({
   const array = player_bet_list
     .map((p, i) => {
       //拼接行动信息
-      let chip_count = 0;
-      const action_desc = p.bet_list
-        .map((a) => {
-          chip_count = a.bet_before_chip - a.chip_count;
-          if (a.play_action_type === BetType.WAIT) {
-            return i === current_player_index ? 'Doing' : 'Waiting';
-          } else if (a.play_action_type === BetType.BB || a.play_action_type === BetType.SB) {
-            return `${a.play_action_type}  ${a.chip_count}`;
-          } else if (a.play_action_type === BetType.CALL || a.play_action_type === BetType.RAISE || a.play_action_type === BetType.ALLIN) {
-            return `${a.play_action_type} to ${a.max_chip_count}`;
-          } else {
-            return a.play_action_type
-          }
-        }).join(' / ')
+      const isCurrentPlayer = i === current_player_index;
+      const lastBet = p.bet_list[p.bet_list.length - 1];
+      const chip_count = lastBet.bet_before_chip - lastBet.chip_count;
+      const action_desc = getActionDesc(p.bet_list, isCurrentPlayer);
       return {
-        name: p.player_name,
+        name: isCurrentPlayer ? `<text_tag color='red'>${p.player_name}</text_tag>` : p.player_name,
         position: p.pos_text,
         action: action_desc,
-        chip_count,
+        chip_count, //底池信息
       };
     })
   const pokers_text =
     currentRound.public_poker && currentRound.public_poker.length > 0
       ? getPokerListText(currentRound.public_poker)
       : '无';
+  //上1个行动人
+  const last_player_index = currentRound.last_player_index;
+  const last_player = last_player_index >= 0 ? array[last_player_index] : null;
+  let last_action = last_player_index >= 0 ? array[last_player_index].action : '';
+  if (last_action) {
+    const a = last_action.split(' / ');
+    last_action = a[a.length-1].trim();
+    last_action = `${last_player?.name} ${last_action}`;
+  }
   return {
     pot,
     no: game_no.toString(),
@@ -108,6 +107,7 @@ export const getPlayerActionMsgData = ({
     user_name: currentPlayer.player_name,
     array,
     pokers_text,
+    last_action,
   };
 };
 
@@ -181,4 +181,21 @@ export const getRoomStatusMsgData = ({ title, sb, bb, per_num, rebuy, game_count
     game_count: game_count.toString(),
     array,
   }
+}
+
+
+function getActionDesc(bet_list: BetInfo[], isCurrentPlayer: boolean) {
+  return bet_list
+  .map((a) => {
+    const chip_count = a.bet_before_chip - a.chip_count;
+    if (a.play_action_type === BetType.WAIT) {
+      return isCurrentPlayer ? 'Doing' : 'Waiting';
+    } else if (a.play_action_type === BetType.BB || a.play_action_type === BetType.SB) {
+      return `${a.play_action_type}  ${a.chip_count}`;
+    } else if (a.play_action_type === BetType.CALL || a.play_action_type === BetType.RAISE || a.play_action_type === BetType.ALLIN) {
+      return `${a.play_action_type} to ${a.max_chip_count}`;
+    } else {
+      return a.play_action_type
+    }
+  }).join(' / ')
 }
